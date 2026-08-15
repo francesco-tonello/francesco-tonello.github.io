@@ -236,7 +236,7 @@
 
   document.getElementById('slider-scale').addEventListener('input', function() {
     document.getElementById('num-scale').textContent = this.value;
-    drawLogo();
+    renderLogo();
   });
 
   function rand(min, max) {
@@ -296,22 +296,30 @@
     ).join(' ') + ' Z';
   }
 
-  function drawLogo() {
-    const inputs = getInputs();
-    const inner = computeInnerPoints(inputs);
-    const outer = computeOuterPoints(inner);
+  // Stored points — only regenerated when values change or regenerate is clicked
+  let storedInner = null;
+  let storedOuter = null;
 
-    // Scale inner hexagon from center, independently of the outer shape
+  function generatePoints() {
+    const inputs = getInputs();
+    storedInner = computeInnerPoints(inputs);
+    storedOuter = computeOuterPoints(storedInner);
+  }
+
+  function renderLogo() {
     const scale = parseInt(document.getElementById('slider-scale').value) / 100;
-    const innerScaled = inner.map(([x, y]) => {
+    const innerScaled = storedInner.map(([x, y]) => {
       const dx = x - CX, dy = y - CY;
       return [CX + dx * scale, CY + dy * scale];
     });
-
-    const outerD = ptsToPathData(outer);
+    const outerD = ptsToPathData(storedOuter);
     const innerD = ptsToPathData([...innerScaled].reverse());
-
     document.getElementById('logo-path').setAttribute('d', outerD + ' ' + innerD);
+  }
+
+  function drawLogo() {
+    generatePoints();
+    renderLogo();
   }
 
   function regenerate() {
